@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Locally load video spike solution</title>
+    <script type="text/javascript" src="https://code.jquery.com/jquery-2.1.1.min.js"></script>
+    <link href="//cdnjs.cloudflare.com/ajax/libs/foundation/5.3.3/css/foundation.min.css" rel="stylesheet"/>
+
+    <script>
+        $(document).ready(function () {
+            //check if browser supports file api and filereader features
+            if (window.File && window.FileReader && window.FileList && window.Blob) {
+
+                //this is not completely neccesary, just a nice function I found to make the file size format friendlier
+                //http://stackoverflow.com/questions/10420352/converting-file-size-in-bytes-to-human-readable
+                function humanFileSize(bytes, si) {
+                    var thresh = si ? 1000 : 1024;
+                    if (bytes < thresh) return bytes + ' B';
+                    var units = si ? ['kB', 'MB', 'GB', 'TB', 'PB', 'EB', 'ZB', 'YB'] : ['KiB', 'MiB', 'GiB', 'TiB', 'PiB', 'EiB', 'ZiB', 'YiB'];
+                    var u = -1;
+                    do {
+                        bytes /= thresh;
+                        ++u;
+                    } while (bytes >= thresh);
+                    return bytes.toFixed(1) + ' ' + units[u];
+                }
+
+                //this function is called when the input loads a video
+                function renderVideo(file) {
+                    var reader = new FileReader();
+                    reader.onload = function (event) {
+                        videoUrl = event.target.result;
+                        $('#videoPlayer').html("<source id='vid-source' src='" + videoUrl + "' type='video/mp4'>");
+                        var videoPlayer = $('#videoPlayer')[0];
+                        videoPlayer.oncanplay = function () {
+                            $('#name-vid').html(file.name);
+                            $('#size-vid').html(humanFileSize(file.size, "MB"));
+                            $('#type-vid').html(file.type);
+                            $('#duration-vid').html(videoPlayer.duration + ' seconds');
+                        };
+                    };
+                    reader.readAsDataURL(file);
+                }
+
+                $("#the-video-file-field").on('change', function () {
+                    renderVideo(this.files[0]);
+                });
+            } else {
+                alert('The File APIs are not fully supported in this browser.');
+            }
+        });
+
+    </script>
+</head>
+<body>
+<div class="container">
+    <div class="row">
+        <div class="large-12 columns">
+            <h1>Load a MP4 file</h1>
+            <input type="file" id="the-video-file-field">
+            <div id="data-vid" class="large-8 columns">
+                <video id='videoPlayer' width='400' controls></video>
+            </div>
+        </div>
+    </div>
+    <div class="row">
+        <div class="large-12 columns">
+            <table class="table">
+                <tr>
+                    <td>File name</td>
+                    <td><span id="name-vid"></span></td>
+                </tr>
+                <tr>
+                    <td>File size</td>
+                    <td><span id="size-vid"></span></td>
+                </tr>
+                <tr>
+                    <td>Video duration</td>
+                    <td><span id="duration-vid"></span></td>
+                </tr>
+                <tr>
+                    <td>File type</td>
+                    <td><span id="type-vid"></span></td>
+                </tr>
+            </table>
+        </div>
+    </div>
+</div>
+</body>
+</html>
